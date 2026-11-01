@@ -1,0 +1,27 @@
+{
+  "name": "electronic-circuit-designer-and-simulator",
+  "version": "1.0.0",
+  "description": "Interactive 3D Electronic Circuit Designer & Simulator (ESP32, Sensors, OLED, Breadboard, Simulation Engine)",
+  "scripts": {
+    "dev": "concurrently -n \"API,WEB\" -c \"bgBlue.bold,bgGreen.bold\" \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "build:client": "npm run build --prefix client",
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
+    "test:api": "node -e \"fetch('http://localhost:5000/api/health').then(r=>r.json()).then(console.log)\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "circuit-simulator",
+    "esp32",
+    "arduino",
+    "threejs",
+    "nextjs",
+    "mern",
+    "iot"
+  ],
+  "author": "Creative Engineering",
+  "license": "MIT"
+}
