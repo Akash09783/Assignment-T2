@@ -6,7 +6,11 @@
     "dev": "concurrently -n \"API,WEB\" -c \"bgBlue.bold,bgGreen.bold\" \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "dev:server": "npm run dev --prefix server",
     "dev:client": "npm run dev --prefix client",
+    "build": "npm run build --prefix client",
     "build:client": "npm run build --prefix client",
+    "start": "npm run start --prefix client",
+    "start:client": "npm run start --prefix client",
+    "start:server": "npm run start --prefix server",
     "install:all": "npm install && npm install --prefix server && npm install --prefix client",
     "test:api": "node -e \"fetch('http://localhost:5000/api/health').then(r=>r.json()).then(console.log)\""
   },

@@ -4,8 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:client": "next start",
     "build": "next build",
+    "build:client": "next build",
     "start": "next start",
+    "start:client": "next start",
     "lint": "next lint"
   },
   "dependencies": {
