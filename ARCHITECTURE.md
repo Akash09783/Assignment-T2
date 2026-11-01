@@ -52,13 +52,12 @@ graph TD
 
 ```
 Assignment T2/
-├── docker-compose.yml              # Single-command orchestration for evaluation
+├── render.yaml                     # Render Cloud Blueprint for 1-click live deployment
 ├── ARCHITECTURE.md                 # System design & algorithms specification
 ├── README.md                       # Installation, API docs, and ESP32 walkthrough
 ├── package.json                    # Root workspace coordinator (concurrent dev runner)
 │
 ├── client/                         # Next.js 16 + React 18 Frontend
-│   ├── Dockerfile                  # Multi-stage production container build
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── page.tsx            # Clean declarative coordinator (~170 lines)
@@ -97,7 +96,6 @@ Assignment T2/
 │   └── package.json
 │
 └── server/                         # Node.js + Express + MongoDB Backend
-    ├── Dockerfile                  # Lightweight Alpine container
     ├── server.js                   # Application entry point with graceful shutdown
     └── src/
         ├── config/
@@ -146,3 +144,4 @@ The circuit solver parses physical jumper wires and internal switch contacts int
 - **Payload Sanitization & Validation**: Express schema validator checks component arrays, wire terminal contracts, and project name boundaries.
 - **DoS & Abuse Protection**: Rate limiting (`express-rate-limit`) limits client bursts.
 - **Failover Architecture**: If MongoDB Atlas or local MongoDB instances are unreachable due to network or firewall restrictions, the server automatically fails over to the zero-downtime file store, guaranteeing evaluation without setup blockers.
+

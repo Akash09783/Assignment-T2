@@ -16,3 +16,4 @@ export const WIRE_COLORS: WireColorOption[] = [
 ];
 
 export const DEFAULT_WIRE_COLOR = '#3b82f6';
+

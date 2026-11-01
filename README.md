@@ -203,6 +203,49 @@ The simulation engine automatically calculates electrical continuity and flags h
 
 ---
 
+## 🌐 Deploying Live to Render (MNC Ready)
+
+This repository includes a production-ready **Render Blueprint** (`render.yaml`) that configures both the backend Express REST API and the frontend Next.js 16 Web Application with zero hassle.
+
+### Option 1: One-Click Render Blueprint (Recommended)
+1. Push this repository to your GitHub account (`git push origin master`).
+2. Log in to [Render Dashboard](https://dashboard.render.com/).
+3. Click **New +** $\rightarrow$ **Blueprint**.
+4. Connect your GitHub repository.
+5. Render will automatically read `render.yaml` and provision both services:
+   - **`circuit3d-api`**: Express Node.js service running on port 10000.
+   - **`circuit3d-web`**: Next.js 16 Web service with WebGL Three.js acceleration.
+6. Click **Apply**. Both services will build and deploy automatically!
+
+### Option 2: Manual Web Service Setup on Render
+If you prefer creating the services individually in the Render Dashboard:
+
+#### Backend API Service:
+- **Type**: Web Service
+- **Name**: `circuit3d-api`
+- **Root Directory**: `server`
+- **Environment**: `Node`
+- **Build Command**: `npm install`
+- **Start Command**: `npm start`
+- **Health Check Path**: `/api/health`
+- **Environment Variables**:
+  - `NODE_ENV`: `production`
+  - `PORT`: `10000`
+  - `MONGODB_URI`: *(Optional)* Paste your MongoDB Atlas URI. If omitted, the server uses its built-in resilient file storage with zero downtime.
+
+#### Frontend Web Service:
+- **Type**: Web Service
+- **Name**: `circuit3d-web`
+- **Root Directory**: `client`
+- **Environment**: `Node`
+- **Build Command**: `npm install && npm run build`
+- **Start Command**: `npm start`
+- **Environment Variables**:
+  - `NODE_ENV`: `production`
+  - `NEXT_PUBLIC_API_URL`: Your deployed backend URL (e.g., `https://circuit3d-api.onrender.com/api`)
+
+---
+
 ## 📡 REST API Reference
 
 | Method | Endpoint | Description |

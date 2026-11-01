@@ -41,3 +41,4 @@ const ProjectSchema = new mongoose.Schema({
 ProjectSchema.index({ updatedAt: -1 });
 
 module.exports = mongoose.model('Project', ProjectSchema);
+

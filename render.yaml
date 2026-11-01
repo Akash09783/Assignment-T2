@@ -1,0 +1,38 @@
+services:
+  # ==========================================================
+  # 1. Backend Service: Express.js REST API
+  # ==========================================================
+  - type: web
+    name: circuit3d-api
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+
+  # ==========================================================
+  # 2. Frontend Service: Next.js 16 Web Application
+  # ==========================================================
+  - type: web
+    name: circuit3d-web
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: client
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+

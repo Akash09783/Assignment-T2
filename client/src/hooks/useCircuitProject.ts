@@ -168,3 +168,4 @@ export function useCircuitProject(initialProject: ProjectData = DEFAULT_TEMPLATE
     createNewProject
   };
 }
+

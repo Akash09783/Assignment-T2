@@ -1,12 +1,22 @@
 import { ProjectData } from '../types/circuit';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+function getApiBaseUrl(): string {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
+  }
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    return `${window.location.origin}/api`;
+  }
+  return 'http://localhost:5000/api';
+}
+
 const LOCAL_STORAGE_KEY = 'circuit_simulator_projects';
 
 // Check if backend API is reachable
 export async function checkApiHealth(): Promise<boolean> {
+  const apiBase = getApiBaseUrl();
   try {
-    const res = await fetch(`${API_BASE}/health`, { method: 'GET', signal: AbortSignal.timeout(2000) });
+    const res = await fetch(`${apiBase}/health`, { method: 'GET', signal: AbortSignal.timeout(3000) });
     return res.ok;
   } catch (err) {
     return false;
@@ -15,8 +25,9 @@ export async function checkApiHealth(): Promise<boolean> {
 
 // Fetch all projects
 export async function fetchProjects(): Promise<ProjectData[]> {
+  const apiBase = getApiBaseUrl();
   try {
-    const res = await fetch(`${API_BASE}/projects`, { signal: AbortSignal.timeout(3000) });
+    const res = await fetch(`${apiBase}/projects`, { signal: AbortSignal.timeout(4000) });
     if (res.ok) {
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
@@ -41,8 +52,9 @@ export async function fetchProjects(): Promise<ProjectData[]> {
 
 // Fetch project by ID or template ID
 export async function fetchProjectById(id: string): Promise<ProjectData | null> {
+  const apiBase = getApiBaseUrl();
   try {
-    const res = await fetch(`${API_BASE}/projects/${id}`, { signal: AbortSignal.timeout(3000) });
+    const res = await fetch(`${apiBase}/projects/${id}`, { signal: AbortSignal.timeout(4000) });
     if (res.ok) {
       const data = await res.json();
       if (data.success && data.data) {
@@ -68,11 +80,12 @@ export async function fetchProjectById(id: string): Promise<ProjectData | null> 
 
 // Save or create project
 export async function saveProject(project: Partial<ProjectData>): Promise<ProjectData> {
+  const apiBase = getApiBaseUrl();
   const isExisting = Boolean(project._id || (project.id && !project.id.startsWith('esp32-')));
   const id = project._id || project.id;
 
   try {
-    const url = isExisting ? `${API_BASE}/projects/${id}` : `${API_BASE}/projects`;
+    const url = isExisting ? `${apiBase}/projects/${id}` : `${apiBase}/projects`;
     const method = isExisting ? 'PUT' : 'POST';
 
     const res = await fetch(url, {
@@ -84,7 +97,6 @@ export async function saveProject(project: Partial<ProjectData>): Promise<Projec
     if (res.ok) {
       const data = await res.json();
       if (data.success && data.data) {
-        // Also update local cache
         saveToLocalStorage(data.data);
         return data.data;
       }
@@ -93,7 +105,6 @@ export async function saveProject(project: Partial<ProjectData>): Promise<Projec
     console.warn('Server save failed, using local storage:', err);
   }
 
-  // Fallback: save to local storage
   const savedProject: ProjectData = {
     _id: id || 'local_' + Date.now(),
     name: project.name || 'Untitled Circuit',
@@ -112,8 +123,9 @@ export async function saveProject(project: Partial<ProjectData>): Promise<Projec
 
 // Delete project
 export async function deleteProject(id: string): Promise<boolean> {
+  const apiBase = getApiBaseUrl();
   try {
-    const res = await fetch(`${API_BASE}/projects/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${apiBase}/projects/${id}`, { method: 'DELETE' });
     if (res.ok) {
       removeFromLocalStorage(id);
       return true;
@@ -128,8 +140,9 @@ export async function deleteProject(id: string): Promise<boolean> {
 
 // Fork project
 export async function forkProject(id: string): Promise<ProjectData | null> {
+  const apiBase = getApiBaseUrl();
   try {
-    const res = await fetch(`${API_BASE}/projects/fork/${id}`, { method: 'POST' });
+    const res = await fetch(`${apiBase}/projects/fork/${id}`, { method: 'POST' });
     if (res.ok) {
       const data = await res.json();
       if (data.success && data.data) {
