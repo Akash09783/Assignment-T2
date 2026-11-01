@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # 1. MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: circuit3d_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: circuit_simulator
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - circuit3d_network
+
+  # 2. Node.js + Express API Backend
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: circuit3d_server
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      MONGODB_URI: mongodb://mongodb:27017/circuit_simulator
+      CLIENT_URL: http://localhost:3000
+      NODE_ENV: production
+    depends_on:
+      - mongodb
+    networks:
+      - circuit3d_network
+
+  # 3. Next.js 16 Web Application Frontend
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: circuit3d_client
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:5000/api
+      NODE_ENV: production
+    depends_on:
+      - server
+    networks:
+      - circuit3d_network
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  circuit3d_network:
+    driver: bridge

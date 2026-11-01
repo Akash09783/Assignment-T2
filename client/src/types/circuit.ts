@@ -1,4 +1,4 @@
-// Types for Circuit Designer & Simulator
+// Enterprise-grade TypeScript definitions for Circuit3D Simulator
 
 export type ComponentCategory =
   | 'microcontrollers'
@@ -9,15 +9,61 @@ export type ComponentCategory =
   | 'actuators'
   | 'power';
 
+export type PinType =
+  | 'power'
+  | 'ground'
+  | 'digital'
+  | 'analog'
+  | 'i2c'
+  | 'pwm'
+  | 'passive';
+
 export interface PinDefinition {
   id: string;
   name: string;
-  type: 'power' | 'ground' | 'digital' | 'analog' | 'i2c' | 'pwm' | 'passive';
+  type: PinType;
   x: number; // Relative X coordinate in 2D (px)
   y: number; // Relative Y coordinate in 2D (px)
   pos3D: [number, number, number]; // Relative [x, y, z] in 3D units
   description?: string;
   voltage?: number;
+}
+
+export interface ComponentProperties {
+  label?: string;
+  resistance?: number;
+  tolerance?: number;
+  color?: string;
+  forwardVoltage?: number;
+  maxCurrent?: number;
+  temperature?: number;
+  humidity?: number;
+  distanceCm?: number;
+  value?: number;
+  angle?: number;
+  frequency?: number | string;
+  ram?: string;
+  clock?: string;
+  pressed?: boolean;
+  active?: boolean;
+  rows?: number;
+  tiePoints?: number;
+  address?: string;
+  width?: number;
+  height?: number;
+  lines?: string[];
+  [key: string]: string | number | boolean | string[] | undefined;
+}
+
+export interface ComponentState {
+  powered?: boolean;
+  active?: boolean;
+  voltage?: number;
+  currentMa?: number;
+  burnedOut?: boolean;
+  error?: string;
+  value?: number | string | boolean;
+  [key: string]: string | number | boolean | undefined;
 }
 
 export interface ComponentMetadata {
@@ -29,7 +75,7 @@ export interface ComponentMetadata {
   height: number;
   size3D: [number, number, number];
   pins: PinDefinition[];
-  defaultProperties: Record<string, any>;
+  defaultProperties: ComponentProperties;
   specs?: Record<string, string>;
 }
 
@@ -41,17 +87,8 @@ export interface PlacedComponent {
   y: number;
   z?: number;
   rotation: number; // 0, 90, 180, 270 degrees
-  properties: Record<string, any>;
-  state?: {
-    powered?: boolean;
-    active?: boolean;
-    value?: any;
-    error?: string;
-    voltage?: number;
-    currentMa?: number;
-    burnedOut?: boolean;
-    [key: string]: any;
-  };
+  properties: ComponentProperties;
+  state?: ComponentState;
 }
 
 export interface WireConnection {
@@ -71,14 +108,8 @@ export interface SimulationState {
   isRunning: boolean;
   isPaused: boolean;
   timeSeconds: number;
-  speed: number; // 0.25, 0.5, 1.0, 2.0
-  logs: Array<{
-    id: string;
-    timestamp: number;
-    level: 'info' | 'warn' | 'error' | 'serial';
-    message: string;
-  }>;
-  gpioStates: Record<string, 'HIGH' | 'LOW' | number>; // e.g. "esp32-1:D4" -> 'HIGH'
+  speed: number;
+  gpioStates: Record<string, 'HIGH' | 'LOW' | number>;
   errors: string[];
 }
 
@@ -97,3 +128,15 @@ export interface ProjectData {
   updatedAt?: string;
 }
 
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  count?: number;
+  storage?: string;
+  message?: string;
+  error?: {
+    code: string;
+    message: string;
+  };
+  timestamp: string;
+}

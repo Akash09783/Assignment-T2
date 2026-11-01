@@ -1,65 +1,90 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const compression = require('compression');
 const morgan = require('morgan');
-const mongoose = require('mongoose');
-const projectRoutes = require('./routes/projectRoutes');
+
+const { PORT, CLIENT_URL, NODE_ENV } = require('./src/config/constants');
+const { connectDatabase } = require('./src/config/database');
+const { apiLimiter } = require('./src/middleware/rateLimiter');
+const { errorHandler, notFoundHandler } = require('./src/middleware/errorHandler');
+
+const projectRoutes = require('./src/routes/projectRoutes');
+const healthRoutes = require('./src/routes/healthRoutes');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/circuit_simulator';
 
-// Middleware
+// 1. Enterprise Security & Compression Middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: false // Allows dynamic 3D WebGL assets & canvas renders
+}));
+app.use(compression());
 app.use(cors({
-  origin: '*', // Allow Next.js client & preview access
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json({ limit: '10mb' }));
-app.use(morgan('dev'));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
+if (NODE_ENV !== 'test') {
+  app.use(morgan('dev'));
+}
+
+// 2. Rate Limiting on API endpoints
+app.use('/api', apiLimiter);
+
+// 3. API Routes
+app.use('/api/health', healthRoutes);
+app.use('/api/projects', projectRoutes);
+
+// Root greeting endpoint
+app.get('/', (req, res) => {
   res.json({
+    name: 'Interactive 3D Electronic Circuit Designer & Simulator API',
+    version: '1.0.0',
     status: 'online',
-    timestamp: new Date().toISOString(),
-    mongoConnected: mongoose.connection.readyState === 1,
-    storageEngine: mongoose.connection.readyState === 1 ? 'MongoDB' : 'Resilient File Store'
+    documentation: '/api/health'
   });
 });
 
-// API Routes
-app.use('/api/projects', projectRoutes);
+// 4. 404 & Global Error Handling
+app.use(notFoundHandler);
+app.use(errorHandler);
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: `Route not found: ${req.method} ${req.url}` });
-});
+// 5. Connect Database and Start Server
+let server;
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error('Unhandled Server Error:', err);
-  res.status(500).json({ success: false, message: err.message || 'Internal Server Error' });
-});
+async function startServer() {
+  await connectDatabase();
 
-// Connect to MongoDB with graceful fallback
-mongoose.connect(MONGODB_URI, {
-  serverSelectionTimeoutMS: 2500 // Quick timeout so server doesn't hang if Mongo isn't running
-})
-.then(() => {
-  console.log(`[MongoDB] Connected successfully to: ${MONGODB_URI}`);
-})
-.catch((err) => {
-  console.warn(`[MongoDB Warning] Could not connect to MongoDB (${err.message}).`);
-  console.warn(`[Fallback] Using local JSON storage file engine. Full CRUD persistence will work without MongoDB running!`);
-});
+  server = app.listen(PORT, () => {
+    console.log(`=======================================================`);
+    console.log(`  Interactive Circuit Simulator API running on port ${PORT} `);
+    console.log(`  API Health: http://localhost:${PORT}/api/health         `);
+    console.log(`  Projects:   http://localhost:${PORT}/api/projects       `);
+    console.log(`=======================================================`);
+  });
+}
 
-// Start listening
-app.listen(PORT, () => {
-  console.log(`=======================================================`);
-  console.log(`  Interactive Circuit Simulator API running on port ${PORT} `);
-  console.log(`  API Health: http://localhost:${PORT}/api/health         `);
-  console.log(`  Projects:   http://localhost:${PORT}/api/projects       `);
-  console.log(`=======================================================`);
-});
+startServer();
 
+// Graceful Termination
+const gracefulShutdown = () => {
+  console.log('\n[Process] Gracefully shutting down server...');
+  if (server) {
+    server.close(() => {
+      console.log('[Process] Server closed cleanly.');
+      process.exit(0);
+    });
+  } else {
+    process.exit(0);
+  }
+};
+
+process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', gracefulShutdown);
+
+module.exports = app;
