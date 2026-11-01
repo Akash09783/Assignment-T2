@@ -83,23 +83,24 @@ export const BOMModal: React.FC<BOMModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 select-none">
-      <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl flex flex-col max-h-[80vh] overflow-hidden text-slate-100">
-        <div className="p-4 bg-slate-800/80 border-b border-slate-700/60 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Layers className="w-5 h-5 text-cyan-400" />
-            <div>
-              <h3 className="font-bold text-sm text-white">Bill of Materials (BOM)</h3>
-              <p className="text-[11px] text-slate-400">Component inventory for {projectName}</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-2 sm:p-4 select-none">
+      <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[80vh] overflow-hidden text-slate-100">
+        <div className="p-3 sm:p-4 bg-slate-800/80 border-b border-slate-700/60 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Layers className="w-5 h-5 text-cyan-400 flex-shrink-0" />
+            <div className="min-w-0">
+              <h3 className="font-bold text-sm text-white truncate">Bill of Materials (BOM)</h3>
+              <p className="text-[11px] text-slate-400 truncate">{projectName}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow transition"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow transition active:scale-95"
             >
-              <Download className="w-3.5 h-3.5" /> Download CSV
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">Export </span>CSV
             </button>
             <button
               onClick={onClose}
@@ -110,33 +111,35 @@ export const BOMModal: React.FC<BOMModalProps> = ({
           </div>
         </div>
 
-        <div className="p-4 overflow-y-auto flex-1">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="border-b border-slate-700 text-slate-400 text-[11px] font-semibold">
-                <th className="pb-2">Qty</th>
-                <th className="pb-2">Part Name</th>
-                <th className="pb-2">Category</th>
-                <th className="pb-2">Specifications</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800 font-mono text-[11px]">
-              {bomItems.map((item, i) => (
-                <tr key={i} className="hover:bg-slate-800/40">
-                  <td className="py-2.5 font-bold text-cyan-400">{item.count}x</td>
-                  <td className="py-2.5 font-sans font-medium text-white">{item.name}</td>
-                  <td className="py-2.5 text-slate-400 text-[10px] uppercase">{item.category}</td>
-                  <td className="py-2.5 text-slate-300 font-sans">{item.details}</td>
+        <div className="p-3 sm:p-4 overflow-y-auto flex-1">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[460px] text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-slate-700 text-slate-400 text-[11px] font-semibold">
+                  <th className="pb-2 w-12">Qty</th>
+                  <th className="pb-2">Part Name</th>
+                  <th className="pb-2">Category</th>
+                  <th className="pb-2">Specifications</th>
                 </tr>
-              ))}
-              <tr className="hover:bg-slate-800/40 font-mono">
-                <td className="py-2.5 font-bold text-cyan-400">{wires.length}x</td>
-                <td className="py-2.5 font-sans font-medium text-white">Jumper Connecting Wires</td>
-                <td className="py-2.5 text-slate-400 text-[10px] uppercase">Wiring</td>
-                <td className="py-2.5 text-slate-300 font-sans">Multi-color point-to-point interconnects</td>
-              </tr>
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-800 font-mono text-[11px]">
+                {bomItems.map((item, i) => (
+                  <tr key={i} className="hover:bg-slate-800/40">
+                    <td className="py-2.5 font-bold text-cyan-400">{item.count}x</td>
+                    <td className="py-2.5 font-sans font-medium text-white">{item.name}</td>
+                    <td className="py-2.5 text-slate-400 text-[10px] uppercase">{item.category}</td>
+                    <td className="py-2.5 text-slate-300 font-sans">{item.details}</td>
+                  </tr>
+                ))}
+                <tr className="hover:bg-slate-800/40 font-mono">
+                  <td className="py-2.5 font-bold text-cyan-400">{wires.length}x</td>
+                  <td className="py-2.5 font-sans font-medium text-white">Jumper Connecting Wires</td>
+                  <td className="py-2.5 text-slate-400 text-[10px] uppercase">Wiring</td>
+                  <td className="py-2.5 text-slate-300 font-sans">Multi-color point-to-point interconnects</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

@@ -67,21 +67,30 @@ export const ProjectsModal: React.FC<ProjectsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 select-none">
-      <div className="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden text-slate-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-2 sm:p-4 select-none">
+      <div className="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] overflow-hidden text-slate-100">
         {/* Modal Header */}
-        <div className="p-4 bg-slate-800/80 border-b border-slate-700/60 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <FolderOpen className="w-5 h-5 text-cyan-400" />
-            <div>
-              <h2 className="text-sm font-bold text-white">Circuit Project Manager</h2>
-              <p className="text-[11px] text-slate-400">Open verified starter circuits or manage saved projects</p>
+        <div className="p-3 sm:p-4 bg-slate-800/80 border-b border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <FolderOpen className="w-5 h-5 text-cyan-400 flex-shrink-0" />
+              <div>
+                <h2 className="text-sm font-bold text-white">Circuit Project Manager</h2>
+                <p className="text-[11px] text-slate-400">Open starter templates or manage saved projects</p>
+              </div>
             </div>
+            {/* Mobile close button */}
+            <button
+              onClick={onClose}
+              className="sm:hidden text-slate-400 hover:text-white text-sm px-2.5 py-1 rounded hover:bg-slate-800"
+            >
+              ✕
+            </button>
           </div>
 
           <div className="flex items-center gap-2">
             {/* Import JSON button */}
-            <label className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs cursor-pointer transition border border-slate-700">
+            <label className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs cursor-pointer transition border border-slate-700 active:scale-95">
               <Upload className="w-3.5 h-3.5 text-cyan-400" /> Import JSON
               <input type="file" accept=".json" onChange={handleFileUpload} className="hidden" />
             </label>
@@ -92,14 +101,15 @@ export const ProjectsModal: React.FC<ProjectsModalProps> = ({
                 onCreateNew();
                 onClose();
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow-lg shadow-cyan-900/40 transition"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow-lg shadow-cyan-900/40 transition active:scale-95"
             >
               <Plus className="w-3.5 h-3.5" /> New Circuit
             </button>
 
+            {/* Desktop close button */}
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white text-sm px-2.5 py-1 rounded hover:bg-slate-800"
+              className="hidden sm:inline-flex text-slate-400 hover:text-white text-sm px-2.5 py-1 rounded hover:bg-slate-800"
             >
               ✕
             </button>
@@ -107,27 +117,33 @@ export const ProjectsModal: React.FC<ProjectsModalProps> = ({
         </div>
 
         {/* Tab Headers */}
-        <div className="flex border-b border-slate-800 px-4 pt-2 bg-slate-900/60">
+        <div className="flex border-b border-slate-800 px-3 sm:px-4 pt-2 bg-slate-900/60 overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab('templates')}
-            className={`px-4 py-2 text-xs font-semibold border-b-2 transition flex items-center gap-2 ${
+            className={`px-3 sm:px-4 py-2 text-xs font-semibold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'templates'
                 ? 'border-cyan-400 text-cyan-300'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" /> Verified Demonstration Projects ({templates.length})
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Verified Demonstration Projects</span>
+            <span className="sm:hidden">Templates</span>
+            <span>({templates.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('saved')}
-            className={`px-4 py-2 text-xs font-semibold border-b-2 transition flex items-center gap-2 ${
+            className={`px-3 sm:px-4 py-2 text-xs font-semibold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'saved'
                 ? 'border-cyan-400 text-cyan-300'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Layers className="w-3.5 h-3.5" /> My Saved Projects ({projects.length})
+            <Layers className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">My Saved Projects</span>
+            <span className="sm:hidden">Saved</span>
+            <span>({projects.length})</span>
           </button>
         </div>
 
@@ -206,13 +222,13 @@ export const ProjectsModal: React.FC<ProjectsModalProps> = ({
                 projects.map((proj) => (
                   <div
                     key={proj._id || proj.id}
-                    className="p-3.5 rounded-xl bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 flex items-center justify-between gap-4 transition"
+                    className="p-3 sm:p-3.5 rounded-xl bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition"
                   >
-                    <div>
-                      <div className="font-bold text-xs text-white flex items-center gap-2">
-                        {proj.name}
+                    <div className="min-w-0">
+                      <div className="font-bold text-xs text-white flex items-center gap-2 truncate">
+                        <span className="truncate">{proj.name}</span>
                         {(proj._id === currentProjectId || proj.id === currentProjectId) && (
-                          <span className="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-1.5 py-0.2 rounded">
+                          <span className="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-1.5 py-0.2 rounded flex-shrink-0">
                             Active
                           </span>
                         )}
@@ -220,8 +236,8 @@ export const ProjectsModal: React.FC<ProjectsModalProps> = ({
                       <div className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
                         {proj.description || 'Circuit schematic and firmware project'}
                       </div>
-                      <div className="text-[10px] text-slate-500 mt-1 flex items-center gap-3">
-                        <span>{proj.components?.length || 0} Components</span>
+                      <div className="text-[10px] text-slate-500 mt-1 flex flex-wrap items-center gap-2 sm:gap-3">
+                        <span>{proj.components?.length || 0} Parts</span>
                         <span>{proj.wires?.length || 0} Wires</span>
                         {proj.updatedAt && (
                           <span>Modified: {new Date(proj.updatedAt).toLocaleDateString()}</span>
@@ -229,13 +245,13 @@ export const ProjectsModal: React.FC<ProjectsModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
                       <button
                         onClick={() => {
                           onLoadProject(proj);
                           onClose();
                         }}
-                        className="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold transition"
+                        className="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold transition active:scale-95"
                       >
                         Load
                       </button>

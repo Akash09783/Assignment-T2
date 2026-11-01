@@ -50,64 +50,70 @@ export const SerialMonitor: React.FC<SerialMonitorProps> = ({
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-30 transition-all duration-300 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 shadow-2xl flex flex-col ${
-        isOpen ? 'h-56' : 'h-9'
+      className={`fixed bottom-0 left-0 right-0 z-30 transition-all duration-300 bg-slate-950/98 backdrop-blur-xl border-t border-slate-800 shadow-2xl flex flex-col ${
+        isOpen ? 'h-48 sm:h-56' : 'h-9'
       }`}
     >
       {/* Top Header Bar */}
-      <div className="h-9 px-4 flex items-center justify-between bg-slate-900/90 border-b border-slate-800/80 text-xs text-slate-300 select-none">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={onToggle}>
+      <div className="h-9 px-2 sm:px-4 flex items-center justify-between bg-slate-900/90 border-b border-slate-800/80 text-xs text-slate-300 select-none gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 cursor-pointer flex-shrink-0" onClick={onToggle}>
           <Terminal className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="font-semibold text-slate-200">Serial Monitor</span>
+          <span className="font-semibold text-slate-200">
+            <span className="hidden xs:inline">Serial </span>Monitor
+          </span>
           <span className="bg-slate-800 text-[10px] px-1.5 py-0.5 rounded text-slate-400 font-mono">
             {logs.length}
           </span>
-          {isOpen ? <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-1" /> : <ChevronUp className="w-3.5 h-3.5 text-slate-400 ml-1" />}
+          {isOpen ? <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-0.5" /> : <ChevronUp className="w-3.5 h-3.5 text-slate-400 ml-0.5" />}
         </div>
 
         {isOpen && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-3 flex-shrink-0">
             {/* Baud rate */}
             <select
               value={baudRate}
               onChange={(e) => setBaudRate(parseInt(e.target.value))}
-              className="bg-slate-800 text-slate-300 border border-slate-700 rounded px-2 py-0.5 text-[11px] focus:outline-none"
+              className="bg-slate-800 text-slate-300 border border-slate-700 rounded px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-[11px] focus:outline-none"
+              title="Serial Baud Rate"
             >
-              <option value={9600}>9600 baud</option>
-              <option value={19200}>19200 baud</option>
-              <option value={57600}>57600 baud</option>
-              <option value={115200}>115200 baud</option>
+              <option value={9600}>9600</option>
+              <option value={19200}>19200</option>
+              <option value={57600}>57600</option>
+              <option value={115200}>115200</option>
             </select>
 
             {/* Auto-scroll toggle */}
             <button
               onClick={() => setAutoScroll(!autoScroll)}
-              className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded transition ${
+              className={`flex items-center gap-1 text-[11px] px-1.5 sm:px-2 py-0.5 rounded transition ${
                 autoScroll ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:text-white'
               }`}
               title="Toggle Auto-Scroll"
             >
-              <ArrowDown className="w-3 h-3" /> Auto-Scroll
+              <ArrowDown className="w-3 h-3" />
+              <span className="hidden md:inline">Auto-Scroll</span>
             </button>
 
             {/* Timestamps toggle */}
             <button
               onClick={() => setShowTimestamps(!showTimestamps)}
-              className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded transition ${
+              className={`flex items-center gap-1 text-[11px] px-1.5 sm:px-2 py-0.5 rounded transition ${
                 showTimestamps ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:text-white'
               }`}
               title="Toggle Timestamps"
             >
-              <Clock className="w-3 h-3" /> Timestamps
+              <Clock className="w-3 h-3" />
+              <span className="hidden md:inline">Timestamps</span>
             </button>
 
             {/* Clear button */}
             <button
               onClick={onClearLogs}
-              className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-white px-2 py-0.5 rounded hover:bg-slate-800 transition"
+              className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-white px-1.5 sm:px-2 py-0.5 rounded hover:bg-slate-800 transition"
               title="Clear Terminal"
             >
-              <Trash2 className="w-3 h-3" /> Clear
+              <Trash2 className="w-3 h-3" />
+              <span className="hidden sm:inline">Clear</span>
             </button>
           </div>
         )}
@@ -116,14 +122,14 @@ export const SerialMonitor: React.FC<SerialMonitorProps> = ({
       {/* Terminal Output */}
       {isOpen && (
         <div className="flex-1 flex flex-col overflow-hidden bg-black/60 font-mono text-xs">
-          <div className="flex-1 p-3 overflow-y-auto space-y-1 select-text">
+          <div className="flex-1 p-2 sm:p-3 overflow-y-auto space-y-1 select-text">
             {logs.length === 0 ? (
-              <div className="text-slate-600 italic text-[11px] pt-2">
-                Serial port open at {baudRate} baud. Ready to stream data from MCU. Start simulation to inspect output.
+              <div className="text-slate-600 italic text-[11px] pt-1">
+                Serial port open at {baudRate} baud. Ready to stream data from MCU.
               </div>
             ) : (
               logs.map((log) => (
-                <div key={log.id} className="leading-relaxed flex items-start gap-2">
+                <div key={log.id} className="leading-relaxed flex items-start gap-1.5 sm:gap-2">
                   {showTimestamps && (
                     <span className="text-slate-500 text-[10px] select-none whitespace-nowrap">
                       [{formatTime(log.timestamp)}]
@@ -149,20 +155,21 @@ export const SerialMonitor: React.FC<SerialMonitorProps> = ({
           </div>
 
           {/* Input Sender Bar */}
-          <form onSubmit={handleSend} className="h-8 px-3 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
-            <span className="text-slate-500 text-xs">&gt;</span>
+          <form onSubmit={handleSend} className="h-9 px-2 sm:px-3 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
+            <span className="text-slate-500 text-xs select-none">&gt;</span>
             <input
               type="text"
-              placeholder="Send message to MCU Serial..."
+              placeholder="Send command to Serial..."
               value={inputCmd}
               onChange={(e) => setInputCmd(e.target.value)}
-              className="flex-1 bg-transparent text-xs text-white focus:outline-none placeholder-slate-600 font-mono"
+              className="flex-1 bg-transparent text-xs text-white focus:outline-none placeholder-slate-600 font-mono min-w-0"
             />
             <button
               type="submit"
-              className="text-xs bg-cyan-600 hover:bg-cyan-500 text-white px-2.5 py-0.5 rounded flex items-center gap-1 transition"
+              className="text-xs bg-cyan-600 hover:bg-cyan-500 text-white px-2.5 py-1 rounded flex items-center gap-1 transition flex-shrink-0 active:scale-95"
             >
-              <Send className="w-3 h-3" /> Send
+              <Send className="w-3 h-3" />
+              <span className="hidden xs:inline">Send</span>
             </button>
           </form>
         </div>

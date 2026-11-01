@@ -91,10 +91,25 @@ export const CircuitCanvas2D: React.FC<CircuitCanvas2DProps> = ({
     };
   }, [components]);
 
-  // Mouse Handlers for Pan & Canvas Drag
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // Left click on background or Middle click -> Pan
-    if (e.target === containerRef.current || (e.target as HTMLElement).tagName === 'svg' || e.button === 1) {
+  // Pointer Handlers for Pan, Multi-Touch Pinch Zoom & Canvas Drag
+  const activePointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchStartDistRef = useRef<number | null>(null);
+  const pinchStartZoomRef = useRef<number>(1);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    // Handle 2-finger pinch gesture
+    if (activePointersRef.current.size === 2) {
+      const points = Array.from(activePointersRef.current.values());
+      pinchStartDistRef.current = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+      pinchStartZoomRef.current = zoom;
+      setIsPanning(false);
+      return;
+    }
+
+    // Left click on background, middle click, or touch on background -> Pan
+    if (e.target === containerRef.current || (e.target as HTMLElement).tagName === 'svg' || (e.target as HTMLElement).tagName === 'rect' || e.button === 1) {
       setIsPanning(true);
       panStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
       onSelectComponent(null);
@@ -102,8 +117,19 @@ export const CircuitCanvas2D: React.FC<CircuitCanvas2DProps> = ({
     }
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handlePointerMove = (e: React.PointerEvent) => {
     if (!containerRef.current) return;
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    // Handle 2-finger pinch zoom
+    if (activePointersRef.current.size === 2 && pinchStartDistRef.current) {
+      const points = Array.from(activePointersRef.current.values());
+      const currentDist = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+      const ratio = currentDist / pinchStartDistRef.current;
+      setZoom(Math.max(0.4, Math.min(2.5, pinchStartZoomRef.current * ratio)));
+      return;
+    }
+
     const rect = containerRef.current.getBoundingClientRect();
     const canvasMouseX = (e.clientX - rect.left - pan.x) / zoom;
     const canvasMouseY = (e.clientY - rect.top - pan.y) / zoom;
@@ -126,9 +152,15 @@ export const CircuitCanvas2D: React.FC<CircuitCanvas2DProps> = ({
     }
   };
 
-  const handleMouseUp = () => {
-    setIsPanning(false);
-    setDraggingCompId(null);
+  const handlePointerUp = (e: React.PointerEvent) => {
+    activePointersRef.current.delete(e.pointerId);
+    if (activePointersRef.current.size < 2) {
+      pinchStartDistRef.current = null;
+    }
+    if (activePointersRef.current.size === 0) {
+      setIsPanning(false);
+      setDraggingCompId(null);
+    }
   };
 
   const handleWheel = (e: React.WheelEvent) => {
@@ -137,8 +169,8 @@ export const CircuitCanvas2D: React.FC<CircuitCanvas2DProps> = ({
     setZoom(z => Math.max(0.4, Math.min(2.5, z * zoomFactor)));
   };
 
-  // Component Drag Start
-  const handleComponentDragStart = (e: React.MouseEvent, comp: PlacedComponent) => {
+  // Component Drag Start (Pointer & Touch friendly)
+  const handleComponentDragStart = (e: React.PointerEvent | React.MouseEvent, comp: PlacedComponent) => {
     e.stopPropagation();
     onSelectComponent(comp.id);
     onSelectWire(null);
@@ -155,7 +187,7 @@ export const CircuitCanvas2D: React.FC<CircuitCanvas2DProps> = ({
   };
 
   // Pin Click for Wiring
-  const handlePinClick = (e: React.MouseEvent, compId: string, pinId: string) => {
+  const handlePinClick = (e: React.MouseEvent | React.PointerEvent, compId: string, pinId: string) => {
     e.stopPropagation();
     const pinPos = getPinCanvasPos(compId, pinId);
     if (!pinPos) return;
@@ -202,11 +234,13 @@ export const CircuitCanvas2D: React.FC<CircuitCanvas2DProps> = ({
   return (
     <div
       ref={containerRef}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
       onWheel={handleWheel}
-      className="relative w-full h-full overflow-hidden select-none bg-[#0a0f1d] cursor-crosshair"
+      style={{ touchAction: 'none' }}
+      className="relative w-full h-full overflow-hidden select-none bg-[#0a0f1d] cursor-crosshair touch-none"
     >
       {/* SVG Canvas Root with Pan & Zoom Transform */}
       <svg
@@ -242,7 +276,7 @@ export const CircuitCanvas2D: React.FC<CircuitCanvas2DProps> = ({
               <g
                 key={comp.id}
                 transform={`translate(${comp.x}, ${comp.y}) rotate(${comp.rotation}, ${meta.width / 2}, ${meta.height / 2})`}
-                onMouseDown={(e) => handleComponentDragStart(e, comp)}
+                onPointerDown={(e) => handleComponentDragStart(e, comp)}
                 className="cursor-move"
               >
                 {/* Selection border halo */}
@@ -516,12 +550,18 @@ export const CircuitCanvas2D: React.FC<CircuitCanvas2DProps> = ({
                     <g
                       key={pin.id}
                       onClick={(e) => handlePinClick(e, comp.id, pin.id)}
+                      onPointerDown={(e) => {
+                        // For touch screens, allow pointerdown directly to register pin tap
+                        if (e.pointerType === 'touch') {
+                          handlePinClick(e, comp.id, pin.id);
+                        }
+                      }}
                       onMouseEnter={(e) => handlePinMouseEnter(e, comp, pin)}
                       onMouseLeave={handlePinMouseLeave}
                       className="cursor-pointer group"
                     >
                       {/* Interactive hit area */}
-                      <circle cx={pin.x} cy={pin.y} r="10" fill="transparent" />
+                      <circle cx={pin.x} cy={pin.y} r="14" fill="transparent" pointerEvents="all" />
 
                       {/* Visible Pin Dot */}
                       <circle
@@ -630,30 +670,30 @@ export const CircuitCanvas2D: React.FC<CircuitCanvas2DProps> = ({
       </svg>
 
       {/* Floating 2D Controls (Zoom, Pan, Rotate, Delete) */}
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-700/60 shadow-xl">
+      <div className="absolute top-3 left-3 z-10 flex items-center gap-1 sm:gap-2 bg-slate-900/90 backdrop-blur-md px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-slate-700/60 shadow-xl max-w-[calc(100vw-1.5rem)] flex-wrap">
         <button
           onClick={() => setZoom(z => Math.min(2.5, z * 1.15))}
           title="Zoom In"
-          className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded"
+          className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded active:scale-95"
         >
           <ZoomIn className="w-4 h-4" />
         </button>
         <button
           onClick={() => setZoom(z => Math.max(0.4, z * 0.85))}
           title="Zoom Out"
-          className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded"
+          className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded active:scale-95"
         >
           <ZoomOut className="w-4 h-4" />
         </button>
         <button
           onClick={() => { setZoom(1.0); setPan({ x: 40, y: 30 }); }}
           title="Reset View"
-          className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded"
+          className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded active:scale-95"
         >
           <Maximize2 className="w-4 h-4" />
         </button>
 
-        <div className="w-[1px] h-4 bg-slate-700 mx-1" />
+        <div className="w-[1px] h-4 bg-slate-700 mx-0.5 sm:mx-1" />
 
         {/* Selected Component Operations */}
         {selectedComponentId && (
@@ -661,16 +701,18 @@ export const CircuitCanvas2D: React.FC<CircuitCanvas2DProps> = ({
             <button
               onClick={() => onRotateComponent(selectedComponentId)}
               title="Rotate 90°"
-              className="flex items-center gap-1 px-2 py-1 text-xs bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded hover:bg-cyan-500/30 transition"
+              className="flex items-center gap-1 px-2 py-1 text-xs bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded hover:bg-cyan-500/30 transition active:scale-95"
             >
-              <RotateCw className="w-3.5 h-3.5" /> Rotate
+              <RotateCw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Rotate</span>
             </button>
             <button
               onClick={() => onDeleteComponent(selectedComponentId)}
               title="Delete Component"
-              className="flex items-center gap-1 px-2 py-1 text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded hover:bg-rose-500/30 transition"
+              className="flex items-center gap-1 px-2 py-1 text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded hover:bg-rose-500/30 transition active:scale-95"
             >
-              <Trash2 className="w-3.5 h-3.5" /> Delete
+              <Trash2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Delete</span>
             </button>
           </>
         )}
@@ -680,22 +722,25 @@ export const CircuitCanvas2D: React.FC<CircuitCanvas2DProps> = ({
           <button
             onClick={() => onDeleteWire(selectedWireId)}
             title="Delete Wire"
-            className="flex items-center gap-1 px-2 py-1 text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded hover:bg-rose-500/30 transition"
+            className="flex items-center gap-1 px-2 py-1 text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded hover:bg-rose-500/30 transition active:scale-95"
           >
-            <Trash2 className="w-3.5 h-3.5" /> Remove Wire
+            <Trash2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Remove</span>
           </button>
         )}
       </div>
 
       {/* Wiring In-Progress Banner */}
       {wireDraftStart && (
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-2 bg-cyan-950/90 border border-cyan-500/50 text-cyan-200 px-3.5 py-1.5 rounded-lg shadow-xl text-xs animate-pulse">
-          <span>Routing Wire from <strong>{wireDraftStart.pin}</strong> — Click target pin to complete.</span>
+        <div className="absolute top-14 sm:top-4 right-3 left-3 sm:left-auto sm:right-4 z-10 flex items-center justify-between gap-2 bg-cyan-950/95 border border-cyan-500/60 text-cyan-200 px-3 py-1.5 rounded-lg shadow-2xl text-xs animate-pulse">
+          <span className="truncate">
+            Routing wire from <strong className="text-cyan-100">{wireDraftStart.pin}</strong> — tap target pin to connect.
+          </span>
           <button
             onClick={() => setWireDraftStart(null)}
-            className="ml-2 text-cyan-400 hover:text-white underline"
+            className="ml-2 text-cyan-400 hover:text-white underline font-semibold flex-shrink-0"
           >
-            Esc
+            Cancel
           </button>
         </div>
       )}

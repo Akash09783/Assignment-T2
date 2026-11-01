@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { PlacedComponent, ProjectData } from '../types/circuit';
 import { DEFAULT_TEMPLATES } from '../lib/defaultTemplates';
 import { DEFAULT_WIRE_COLOR } from '../constants/wireColors';
@@ -30,7 +30,14 @@ export default function CircuitSimulatorPage() {
   const [isComponentLibraryOpen, setIsComponentLibraryOpen] = useState<boolean>(false);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState<boolean>(false);
   const [isBOMModalOpen, setIsBOMModalOpen] = useState<boolean>(false);
-  const [isSerialMonitorOpen, setIsSerialMonitorOpen] = useState<boolean>(true);
+  const [isSerialMonitorOpen, setIsSerialMonitorOpen] = useState<boolean>(false);
+
+  // Responsive default: Open Serial Monitor on desktop screens only
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      setIsSerialMonitorOpen(true);
+    }
+  }, []);
 
   // 2. Circuit Project Hook (Components, Wires, Firmware, Placement)
   const {
@@ -125,14 +132,22 @@ export default function CircuitSimulatorPage() {
     }
   };
 
+  const handleTabChange = (tab: 'design' | '3d' | 'code' | 'bom') => {
+    if (tab === 'bom') {
+      setIsBOMModalOpen(true);
+    } else {
+      setActiveTab(tab);
+    }
+  };
+
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-950 font-sans select-none">
+    <div className="flex flex-col h-[100dvh] w-full min-h-[100dvh] overflow-hidden bg-slate-950 font-sans select-none">
       {/* Top Cirkit-style Navbar */}
       <TopNavbar
         projectName={project.name}
         onChangeProjectName={(name) => setProject(p => ({ ...p, name }))}
         activeTab={activeTab}
-        onChangeTab={setActiveTab}
+        onChangeTab={handleTabChange}
         simulationRunning={simulationRunning}
         simulationPaused={simulationPaused}
         simulationTime={simulationTime}
@@ -155,25 +170,25 @@ export default function CircuitSimulatorPage() {
 
       {/* Floating Status Notification Toast */}
       {toastMessage && (
-        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-50 bg-emerald-600/95 text-white text-xs px-4 py-2 rounded-lg shadow-2xl flex items-center gap-2 animate-bounce">
-          <CheckCircle className="w-4 h-4 text-emerald-200" />
-          <span>{toastMessage}</span>
+        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 bg-emerald-600/95 text-white text-xs px-4 py-2 rounded-lg shadow-2xl flex items-center gap-2 animate-bounce max-w-[90vw] text-center">
+          <CheckCircle className="w-4 h-4 text-emerald-200 flex-shrink-0" />
+          <span className="truncate">{toastMessage}</span>
         </div>
       )}
 
       {/* Circuit Diagnostics Alert Banner */}
       {circuitErrors.length > 0 && (
-        <div className="bg-rose-600/95 text-white text-xs px-4 py-1.5 flex items-center justify-between z-30 font-medium">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-rose-200" />
-            <span>{circuitErrors[0]}</span>
+        <div className="bg-rose-600/95 text-white text-xs px-3 sm:px-4 py-1.5 flex items-center justify-between z-30 font-medium flex-shrink-0">
+          <div className="flex items-center gap-2 truncate pr-2">
+            <AlertTriangle className="w-4 h-4 text-rose-200 flex-shrink-0" />
+            <span className="truncate">{circuitErrors[0]}</span>
           </div>
-          <span
-            className="text-[10px] text-rose-200 underline cursor-pointer"
+          <button
+            className="text-[10px] text-rose-200 underline cursor-pointer flex-shrink-0"
             onClick={() => setCircuitErrors([])}
           >
             Dismiss
-          </span>
+          </button>
         </div>
       )}
 

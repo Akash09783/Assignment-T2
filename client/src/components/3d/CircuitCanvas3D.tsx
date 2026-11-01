@@ -232,20 +232,24 @@ export const CircuitCanvas3D: React.FC<CircuitCanvas3DProps> = ({
     };
     animate();
 
-    // Resize handler
+    // Dynamic resize handler with ResizeObserver
     const handleResize = () => {
       if (!container || !renderer || !camera) return;
       const w = container.clientWidth;
       const h = container.clientHeight;
+      if (w === 0 || h === 0) return;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
 
     window.addEventListener('resize', handleResize);
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       cancelAnimationFrame(animationId);
       controls.dispose();
       renderer.dispose();
@@ -908,55 +912,61 @@ export const CircuitCanvas3D: React.FC<CircuitCanvas3DProps> = ({
       />
 
       {/* Floating 3D Controls HUD */}
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-700/60 shadow-xl">
+      <div className="absolute top-3 left-3 z-10 flex items-center gap-1 sm:gap-2 bg-slate-900/90 backdrop-blur-md px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-slate-700/60 shadow-xl max-w-[calc(100vw-1.5rem)] flex-wrap">
         <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mr-1 flex items-center gap-1.5">
-          <Camera className="w-3.5 h-3.5 text-cyan-400" /> 3D Studio
+          <Camera className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="hidden sm:inline">3D Studio</span>
         </span>
 
         <button
           onClick={() => setCameraPreset('isometric')}
-          className={`px-2.5 py-1 text-xs rounded font-medium transition ${
+          className={`px-2 sm:px-2.5 py-1 text-xs rounded font-medium transition active:scale-95 ${
             viewPreset === 'isometric'
               ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
               : 'text-slate-300 hover:bg-slate-800'
           }`}
         >
-          Isometric
+          <span className="hidden sm:inline">Isometric</span>
+          <span className="sm:hidden">Iso</span>
         </button>
 
         <button
           onClick={() => setCameraPreset('top')}
-          className={`px-2.5 py-1 text-xs rounded font-medium transition ${
+          className={`px-2 sm:px-2.5 py-1 text-xs rounded font-medium transition active:scale-95 ${
             viewPreset === 'top'
               ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
               : 'text-slate-300 hover:bg-slate-800'
           }`}
         >
-          Top-Down
+          <span className="hidden sm:inline">Top-Down</span>
+          <span className="sm:hidden">Top</span>
         </button>
 
         <button
           onClick={() => setCameraPreset('front')}
-          className={`px-2.5 py-1 text-xs rounded font-medium transition ${
+          className={`px-2 sm:px-2.5 py-1 text-xs rounded font-medium transition active:scale-95 ${
             viewPreset === 'front'
               ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
               : 'text-slate-300 hover:bg-slate-800'
           }`}
         >
-          Front Angle
+          <span className="hidden sm:inline">Front Angle</span>
+          <span className="sm:hidden">Front</span>
         </button>
       </div>
 
       {/* Wire Routing Indicator Banner */}
       {wireStartPin && (
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-2.5 bg-rose-950/90 border border-rose-500/50 text-rose-200 px-4 py-2 rounded-lg shadow-2xl animate-pulse text-xs">
-          <Sparkles className="w-4 h-4 text-rose-400" />
-          <span>
-            Wiring active: <strong>{wireStartPin.componentId}</strong> ({wireStartPin.pin}) - Click another pin to connect.
-          </span>
+        <div className="absolute top-14 sm:top-4 right-3 left-3 sm:left-auto sm:right-4 z-10 flex items-center justify-between gap-2.5 bg-rose-950/95 border border-rose-500/60 text-rose-200 px-3.5 py-1.5 rounded-lg shadow-2xl animate-pulse text-xs">
+          <div className="flex items-center gap-1.5 truncate">
+            <Sparkles className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" />
+            <span className="truncate">
+              Wiring <strong>{wireStartPin.componentId}</strong> ({wireStartPin.pin}) — tap target pin
+            </span>
+          </div>
           <button
             onClick={() => setWireStartPin(null)}
-            className="ml-2 text-rose-300 hover:text-white underline text-[11px]"
+            className="ml-2 text-rose-300 hover:text-white underline text-[11px] font-semibold flex-shrink-0"
           >
             Cancel
           </button>
@@ -964,12 +974,17 @@ export const CircuitCanvas3D: React.FC<CircuitCanvas3DProps> = ({
       )}
 
       {/* 3D Navigation Guide Pill at Bottom-Right */}
-      <div className="absolute bottom-4 right-4 z-10 flex items-center gap-3 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800 text-[11px] text-slate-400 pointer-events-none">
+      <div className="hidden md:flex absolute bottom-4 right-4 z-10 items-center gap-3 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800 text-[11px] text-slate-400 pointer-events-none">
         <span>Orbit: <strong>Left Drag</strong></span>
         <span>•</span>
         <span>Pan: <strong>Right Drag</strong></span>
         <span>•</span>
         <span>Zoom: <strong>Scroll</strong></span>
+      </div>
+
+      {/* Mobile touch hint pill */}
+      <div className="md:hidden absolute bottom-3 right-3 z-10 flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-2 py-1 rounded text-[10px] text-slate-400 pointer-events-none">
+        <span>1-finger orbit • 2-finger zoom</span>
       </div>
     </div>
   );

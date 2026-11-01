@@ -43,22 +43,29 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({
   };
 
   return (
-    <div className="absolute top-14 right-4 z-20 w-80 bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-xl shadow-2xl overflow-hidden text-slate-100 flex flex-col max-h-[82vh]">
-      {/* Header matching Cirkit Designer style */}
-      <div className="p-3.5 bg-slate-800/80 border-b border-slate-700/60 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Sliders className="w-4 h-4 text-cyan-400" />
-          <h3 className="font-semibold text-xs tracking-wide text-white uppercase">
-            Component Properties
-          </h3>
+    <>
+      {/* Mobile backdrop overlay */}
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 sm:hidden"
+        onClick={onClose}
+      />
+
+      <div className="fixed inset-x-2 bottom-2 z-40 sm:absolute sm:top-14 sm:right-4 sm:inset-x-auto sm:bottom-auto w-auto sm:w-80 bg-slate-900/98 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-slate-100 flex flex-col max-h-[80vh] sm:max-h-[82vh]">
+        {/* Header matching Cirkit Designer style */}
+        <div className="p-3.5 bg-slate-800/80 border-b border-slate-700/60 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sliders className="w-4 h-4 text-cyan-400" />
+            <h3 className="font-semibold text-xs tracking-wide text-white uppercase">
+              Component Properties
+            </h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white text-xs px-2.5 py-1 rounded-md hover:bg-slate-700 transition"
+          >
+            ✕
+          </button>
         </div>
-        <button
-          onClick={onClose}
-          className="text-slate-400 hover:text-white text-xs px-2 py-0.5 rounded hover:bg-slate-700"
-        >
-          ✕
-        </button>
-      </div>
 
       <div className="p-4 overflow-y-auto space-y-4 flex-1 text-xs">
         {/* Component Label */}
@@ -324,6 +331,7 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({
         </div>
       </div>
     </div>
-  );
+  </>
+);
 };
 
