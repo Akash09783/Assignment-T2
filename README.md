@@ -226,3 +226,4 @@ The simulation engine automatically calculates electrical continuity and flags h
 - [x] **Simulation Engine**: Electrical netlist solver, MCU execution loop, real-time GPIO states, and Web Audio buzzer.
 - [x] **Project Management & MERN Backend**: Express API with Mongoose and resilient zero-downtime file store.
 - [x] **Bill of Materials (BOM) & JSON Export**: Automated parts inventory generator with CSV download and shareable project URLs.
+

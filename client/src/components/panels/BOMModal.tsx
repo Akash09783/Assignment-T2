@@ -142,3 +142,4 @@ export const BOMModal: React.FC<BOMModalProps> = ({
     </div>
   );
 };
+

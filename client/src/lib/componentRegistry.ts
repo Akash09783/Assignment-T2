@@ -379,3 +379,4 @@ export function getResistorColorBands(ohms: number): [string, string, string, st
 
   return [band1, band2, band3, band4];
 }
+

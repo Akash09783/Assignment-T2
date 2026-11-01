@@ -326,3 +326,4 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({
     </div>
   );
 };
+

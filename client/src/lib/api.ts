@@ -166,3 +166,4 @@ function removeFromLocalStorage(id: string) {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(filtered));
   } catch (e) {}
 }
+

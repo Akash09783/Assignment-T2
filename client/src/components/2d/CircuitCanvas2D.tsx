@@ -719,3 +719,4 @@ export const CircuitCanvas2D: React.FC<CircuitCanvas2DProps> = ({
     </div>
   );
 };
+
